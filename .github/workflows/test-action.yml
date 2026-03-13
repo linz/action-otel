@@ -1,0 +1,33 @@
+name: test-action
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Run action (start)
+        uses: ./
+        id: otel
+
+      - name: Verify environment variables
+        run: |
+          if [ -z "$TRACEPARENT" ]; then
+            echo "TRACEPARENT is not set"
+            exit 1
+          fi
+          if [ -z "$TRACEPARENT_START" ]; then
+            echo "TRACEPARENT_START is not set"
+            exit 1
+          fi
+          echo "TRACEPARENT=$TRACEPARENT"
+          echo "TRACEPARENT_START=$TRACEPARENT_START"
+
+      - name: Mock some work
+        run: sleep 1
