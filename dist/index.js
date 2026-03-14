@@ -31019,6 +31019,17 @@ var require_src13 = __commonJS({
 });
 
 // src/index.ts
+var src_exports = {};
+__export(src_exports, {
+  generateTraceId: () => generateTraceId,
+  generateTraceparent: () => generateTraceparent,
+  main: () => main,
+  runEnd: () => runEnd,
+  runStart: () => runStart
+});
+module.exports = __toCommonJS(src_exports);
+var import_node_crypto = __toESM(require("node:crypto"));
+var import_node_fs = __toESM(require("node:fs"));
 init_esm();
 var import_exporter_trace_otlp_proto = __toESM(require_src9());
 var import_resources = __toESM(require_src11());
@@ -31028,12 +31039,14 @@ var import_sdk_trace_base = __toESM(require_src13());
 var ATTR_SERVICE_NAME3 = "service.name";
 
 // src/index.ts
-var import_node_crypto = __toESM(require("node:crypto"));
-var import_node_fs = __toESM(require("node:fs"));
+function generateTraceId() {
+  const epoch = Math.floor(Date.now() / 1e3).toString(16);
+  const rand = import_node_crypto.default.randomBytes(12).toString("hex");
+  return epoch + rand;
+}
 function generateTraceparent() {
-  const traceId = import_node_crypto.default.randomBytes(16).toString("hex");
   const spanId = import_node_crypto.default.randomBytes(8).toString("hex");
-  return `00-${traceId}-${spanId}-01`;
+  return `00-${generateTraceId()}-${spanId}-01`;
 }
 async function submitSpan(traceparent, startTime) {
   const parts = traceparent.split("-");
@@ -31050,58 +31063,87 @@ async function submitSpan(traceparent, startTime) {
   provider.addSpanProcessor(new import_sdk_trace_base.SimpleSpanProcessor(exporter));
   const tracer = provider.getTracer("action-otel");
   const spanContext = { traceId, spanId, traceFlags: TraceFlags.SAMPLED };
-  const span = tracer.startSpan(process.env.GITHUB_ACTION ?? "action", {
-    startTime,
-    kind: SpanKind.INTERNAL
-  }, trace.setSpanContext(ROOT_CONTEXT, spanContext));
+  const span = tracer.startSpan(
+    process.env.GITHUB_ACTION ?? "action",
+    {
+      startTime,
+      kind: SpanKind.INTERNAL
+    },
+    trace.setSpanContext(ROOT_CONTEXT, spanContext)
+  );
   span.end(Date.now());
   await provider.forceFlush();
   await provider.shutdown();
 }
-async function main() {
-  const args = process.argv.slice(2);
+function runStart() {
+  const traceparent = generateTraceparent();
+  const startTime = Date.now().toString();
+  const githubEnv = process.env.GITHUB_ENV;
+  if (githubEnv) {
+    try {
+      import_node_fs.default.appendFileSync(githubEnv, `TRACEPARENT=${traceparent}
+`);
+      import_node_fs.default.appendFileSync(githubEnv, `TRACEPARENT_START=${startTime}
+`);
+    } catch (err) {
+      process.stderr.write(`Failed to write to $GITHUB_ENV: ${err.message}
+`);
+    }
+  }
+  const githubState = process.env.GITHUB_STATE;
+  if (githubState) {
+    try {
+      import_node_fs.default.appendFileSync(githubState, `isPost=true
+`);
+      import_node_fs.default.appendFileSync(githubState, `traceparent=${traceparent}
+`);
+      import_node_fs.default.appendFileSync(githubState, `startTime=${startTime}
+`);
+    } catch (err) {
+      process.stderr.write(`Failed to write to $GITHUB_STATE: ${err.message}
+`);
+    }
+  }
+  process.stdout.write(`export TRACEPARENT=${traceparent}
+`);
+  process.stdout.write(`export TRACEPARENT_START=${startTime}
+`);
+}
+async function runEnd() {
+  const traceparent = process.env["TRACEPARENT"] ?? process.env["STATE_traceparent"] ?? "";
+  const startTimeStr = process.env["TRACEPARENT_START"] ?? process.env["STATE_startTime"] ?? "";
+  if (traceparent.trim() && startTimeStr) {
+    const startTime = parseInt(startTimeStr);
+    process.stdout.write(`Submitting span for TRACEPARENT=${traceparent} (started at ${startTime})
+`);
+    try {
+      await submitSpan(traceparent, startTime);
+    } catch (err) {
+      process.stderr.write(`Failed to submit span: ${err.message}
+`);
+    }
+  } else {
+    process.stderr.write("Missing $TRACEPARENT or $TRACEPARENT_START\n");
+  }
+}
+async function main(argv = process.argv.slice(2)) {
   const isGhaStatusPost = process.env["STATE_isPost"] === "true";
-  const isStart = args.includes("--start") || process.env.GITHUB_ACTIONS && !isGhaStatusPost;
-  const isEnd = args.includes("--end") || isGhaStatusPost;
-  if (isStart && !isGhaStatusPost) {
-    const traceparent = generateTraceparent();
-    const startTime = Date.now().toString();
-    const githubEnv = process.env.GITHUB_ENV;
-    if (githubEnv) {
-      try {
-        import_node_fs.default.appendFileSync(githubEnv, `TRACEPARENT=${traceparent}
-`);
-        import_node_fs.default.appendFileSync(githubEnv, `TRACEPARENT_START=${startTime}
-`);
-      } catch (err) {
-        process.stderr.write(`Failed to write to $GITHUB_ENV: ${err.message}
-`);
-      }
-    }
-    process.stdout.write(`export TRACEPARENT=${traceparent}
-`);
-    process.stdout.write(`export TRACEPARENT_START=${startTime}
-`);
-  }
-  if (isEnd) {
-    const traceparent = process.env["TRACEPARENT"] || process.env["STATE_traceparent"];
-    const startTimeStr = process.env["TRACEPARENT_START"] || process.env["STATE_startTime"];
-    if (traceparent && startTimeStr) {
-      const startTime = parseInt(startTimeStr);
-      process.stdout.write(`Submitting span for TRACEPARENT=${traceparent} (started at ${startTime})
-`);
-      try {
-        await submitSpan(traceparent, startTime);
-      } catch (err) {
-        process.stderr.write(`Failed to submit span: ${err.message}
-`);
-      }
-    } else {
-      process.stderr.write("Missing TRACEPARENT or TRACEPARENT_START for end handler\n");
-    }
-  }
+  const isStart = argv.includes("--start") || process.env.GITHUB_ACTIONS && !isGhaStatusPost;
+  const isEnd = argv.includes("--end") || isGhaStatusPost;
+  if (isStart && !isGhaStatusPost)
+    runStart();
+  if (isEnd)
+    await runEnd();
 }
 main().catch((err) => {
   process.stderr.write(err.stack + "\n");
   process.exit(1);
+});
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  generateTraceId,
+  generateTraceparent,
+  main,
+  runEnd,
+  runStart
 });
