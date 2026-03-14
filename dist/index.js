@@ -31048,16 +31048,31 @@ function generateTraceparent() {
   const spanId = import_node_crypto.default.randomBytes(8).toString("hex");
   return `00-${generateTraceId()}-${spanId}-01`;
 }
+function readGithubEnv() {
+  if (process.env["GITHUB_RUN_ID"] == null)
+    return null;
+  return {
+    "github.run_id": process.env["GITHUB_RUN_ID"],
+    "github.run_attempt": process.env["GITHUB_RUN_ATTEMPT"],
+    "github.repository": process.env["GITHUB_REPOSITORY"],
+    "github.workflow": process.env["GITHUB_WORKFLOW"]
+  };
+}
 async function submitSpan(traceparent, startTime) {
+  console.log(`Submitting span: traceparent=${traceparent}, startTime=${startTime}`);
   const parts = traceparent.split("-");
-  if (parts.length !== 4)
+  if (parts.length !== 4) {
+    console.error("Invalid traceparent format");
     return;
+  }
   const traceId = parts[1];
   const spanId = parts[2];
   const exporter = process.env.OTEL_EXPORTER_OTLP_CONSOLE === "true" ? new import_sdk_trace_base.ConsoleSpanExporter() : new import_exporter_trace_otlp_proto.OTLPTraceExporter();
+  console.log(`Using exporter: ${exporter.constructor.name}`);
   const provider = new import_sdk_trace_base.BasicTracerProvider({
     resource: new import_resources.Resource({
-      [ATTR_SERVICE_NAME3]: process.env.GITHUB_ACTION ?? "github-action"
+      [ATTR_SERVICE_NAME3]: process.env.GITHUB_ACTION ?? "github-action",
+      ...readGithubEnv()
     })
   });
   provider.addSpanProcessor(new import_sdk_trace_base.SimpleSpanProcessor(exporter));
@@ -31067,13 +31082,16 @@ async function submitSpan(traceparent, startTime) {
     process.env.GITHUB_ACTION ?? "action",
     {
       startTime,
-      kind: SpanKind.INTERNAL
+      kind: SpanKind.SERVER
     },
     trace.setSpanContext(ROOT_CONTEXT, spanContext)
   );
   span.end(Date.now());
+  console.log("Span ended, flushing exporter...");
   await provider.forceFlush();
+  console.log("Exporter flushed, shutting down provider...");
   await provider.shutdown();
+  console.log("Provider shut down.");
 }
 function runStart() {
   const traceparent = generateTraceparent();
@@ -31118,6 +31136,7 @@ async function runEnd() {
 `);
     try {
       await submitSpan(traceparent, startTime);
+      console.log("submitSpan call completed");
     } catch (err) {
       process.stderr.write(`Failed to submit span: ${err.message}
 `);
