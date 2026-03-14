@@ -1,4 +1,4 @@
-import crypto from 'node:crypto';
+import crypto, { createHash } from 'node:crypto';
 import fs from 'node:fs';
 
 import type { SpanContext } from '@opentelemetry/api';
@@ -37,11 +37,14 @@ function readGithubEnv(): Record<string, string | undefined> | null {
   };
 }
 
+function maskKey(val: string): string {
+  return createHash('sha256').update(val).digest('hex').slice(0, 12);
+}
+
 async function submitSpan(traceparent: string, startTime: number): Promise<void> {
-  console.log(`Submitting span: traceparent=${traceparent}, startTime=${startTime}`);
   const parts = traceparent.split('-');
   if (parts.length !== 4) {
-    console.error('Invalid traceparent format');
+    process.stderr.write('Invalid traceparent format\n');;
     return;
   }
 
@@ -51,7 +54,11 @@ async function submitSpan(traceparent: string, startTime: number): Promise<void>
   const exporter =
     process.env.OTEL_EXPORTER_OTLP_CONSOLE === 'true' ? new ConsoleSpanExporter() : new OTLPTraceExporter();
 
-  console.log(`Using exporter: ${exporter.constructor.name}`);
+  process.stdout.write(`Using exporter: ${exporter.constructor.name}\n`);
+  const otelEnv = Object.keys(process.env).filter((f) => f.startsWith('OTEL_'));
+  const otel: Record<string, unknown> = {};
+  for (const key of otelEnv) otel[key] = maskKey(process.env[key] ?? '');
+  process.stdout.write(`OtelEnv: ${JSON.stringify(otel)}\n`);
 
   const provider = new BasicTracerProvider({
     resource: new Resource({
@@ -59,6 +66,7 @@ async function submitSpan(traceparent: string, startTime: number): Promise<void>
       ...readGithubEnv(),
     }),
   });
+
 
   provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
   const tracer = provider.getTracer('action-otel');
@@ -121,7 +129,6 @@ export async function runEnd() {
     process.stdout.write(`Submitting span for TRACEPARENT=${traceparent} (started at ${startTime})\n`);
     try {
       await submitSpan(traceparent, startTime);
-      console.log('submitSpan call completed');
     } catch (err: any) {
       process.stderr.write(`Failed to submit span: ${err.message}\n`);
     }

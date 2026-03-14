@@ -31058,17 +31058,27 @@ function readGithubEnv() {
     "github.workflow": process.env["GITHUB_WORKFLOW"]
   };
 }
+function maskKey(val) {
+  return (0, import_node_crypto.createHash)("sha256").update(val).digest("hex").slice(0, 12);
+}
 async function submitSpan(traceparent, startTime) {
-  console.log(`Submitting span: traceparent=${traceparent}, startTime=${startTime}`);
   const parts = traceparent.split("-");
   if (parts.length !== 4) {
-    console.error("Invalid traceparent format");
+    process.stderr.write("Invalid traceparent format\n");
+    ;
     return;
   }
   const traceId = parts[1];
   const spanId = parts[2];
   const exporter = process.env.OTEL_EXPORTER_OTLP_CONSOLE === "true" ? new import_sdk_trace_base.ConsoleSpanExporter() : new import_exporter_trace_otlp_proto.OTLPTraceExporter();
-  console.log(`Using exporter: ${exporter.constructor.name}`);
+  process.stdout.write(`Using exporter: ${exporter.constructor.name}
+`);
+  const otelEnv = Object.keys(process.env).filter((f) => f.startsWith("OTEL_"));
+  const otel = {};
+  for (const key of otelEnv)
+    otel[key] = maskKey(process.env[key] ?? "");
+  process.stdout.write(`OtelEnv: ${JSON.stringify(otel)}
+`);
   const provider = new import_sdk_trace_base.BasicTracerProvider({
     resource: new import_resources.Resource({
       [ATTR_SERVICE_NAME3]: process.env.GITHUB_ACTION ?? "github-action",
@@ -31136,7 +31146,6 @@ async function runEnd() {
 `);
     try {
       await submitSpan(traceparent, startTime);
-      console.log("submitSpan call completed");
     } catch (err) {
       process.stderr.write(`Failed to submit span: ${err.message}
 `);
