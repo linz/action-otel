@@ -31065,7 +31065,6 @@ async function submitSpan(traceparent, startTime) {
   const parts = traceparent.split("-");
   if (parts.length !== 4) {
     process.stderr.write("Invalid traceparent format\n");
-    ;
     return;
   }
   const traceId = parts[1];

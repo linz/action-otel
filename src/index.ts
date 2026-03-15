@@ -25,7 +25,6 @@ export function generateTraceparent(): string {
   return `00-${generateTraceId()}-${spanId}-01`;
 }
 
-
 function readGithubEnv(): Record<string, string | undefined> | null {
   if (process.env['GITHUB_RUN_ID'] == null) return null;
 
@@ -44,7 +43,7 @@ function maskKey(val: string): string {
 async function submitSpan(traceparent: string, startTime: number): Promise<void> {
   const parts = traceparent.split('-');
   if (parts.length !== 4) {
-    process.stderr.write('Invalid traceparent format\n');;
+    process.stderr.write('Invalid traceparent format\n');
     return;
   }
 
@@ -66,7 +65,6 @@ async function submitSpan(traceparent: string, startTime: number): Promise<void>
       ...readGithubEnv(),
     }),
   });
-
 
   provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
   const tracer = provider.getTracer('action-otel');

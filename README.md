@@ -2,7 +2,6 @@
 
 Setup a `traceparent` at the start of a github workflow then submit it at the end of the workflow.
 
-
 ## Usage
 
 As the first step in the github action run the open telementry workflow
@@ -11,15 +10,13 @@ As the first step in the github action run the open telementry workflow
 steps:
   - name: Setup Otel
     uses: linz/action-otel@master
-  
-  - name: Echo env
-    runs: | 
-      echo $TRACEPARENT # traceparent is setup
 
+  - name: Echo env
+    runs: |
+      echo $TRACEPARENT # traceparent is setup
 
     # Span gets submitted as a post workflow
 ```
-
 
 ## Configuration
 
