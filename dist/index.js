@@ -31102,7 +31102,7 @@ async function submitSpan(traceParent, startTime) {
   const tracer = provider.getTracer("action-otel");
   const spanContext = { traceId, spanId, traceFlags: TraceFlags.SAMPLED };
   const span = tracer.startSpan(
-    process.env.GITHUB_WORKFLOW ? `action.${process.env["GITHUB_WORKFLOW"]}` : "action",
+    process.env.GITHUB_WORKFLOW ? `action.${process.env["GITHUB_WORKFLOW"]}.${process.env["GITHUB_JOB"]}` : "action",
     {
       startTime,
       kind: SpanKind.SERVER

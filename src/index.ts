@@ -88,7 +88,7 @@ async function submitSpan(traceParent: string, startTime: number): Promise<void>
   const spanContext: SpanContext = { traceId, spanId, traceFlags: TraceFlags.SAMPLED };
 
   const span = tracer.startSpan(
-    process.env.GITHUB_WORKFLOW ? `action.${process.env['GITHUB_WORKFLOW']}` : 'action',
+    process.env.GITHUB_WORKFLOW ? `action.${process.env['GITHUB_WORKFLOW']}.${process.env['GITHUB_JOB']}` : 'action',
     {
       startTime,
       kind: SpanKind.SERVER,
