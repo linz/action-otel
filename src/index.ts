@@ -35,7 +35,7 @@ function readGithubEnv(): Record<string, string | undefined> | null {
   const output = {};
   env(output, 'github.actor', 'GITHUB_ACTOR');
   env(output, 'github.event', 'GITHUB_EVENT_NAME');
-  env(output, 'github.job_id', 'GITHUB_JOB');
+  env(output, 'github.job', 'GITHUB_JOB');
   env(output, 'github.ref', 'GITHUB_REF');
   env(output, 'github.sha', 'GITHUB_SHA');
   env(output, 'github.run_id', 'GITHUB_RUN_ID');
@@ -49,9 +49,9 @@ function maskKey(val: string): string {
 }
 
 function getServiceName() {
-  // linz/action-otel.push
+  // linz_action-otel_push_test
   if (process.env.GITHUB_ACTION) {
-    return `${process.env['GITHUB_REPOSITORY']}.${process.env['GITHUB_WORKFLOW']}`;
+    return `${process.env['GITHUB_REPOSITORY']}.${process.env['GITHUB_WORKFLOW']}.${process.env['GITHUB_JOB']}`;
   }
   return 'action-otel';
 }
