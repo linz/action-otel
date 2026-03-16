@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import { describe, it } from 'node:test';
 
-import { generateTraceId, generateTraceparent, main } from './index.ts';
+import { generateTraceId, generateTraceParent, main } from './index.ts';
 
 describe('OTEL Action', () => {
   describe('generateTraceId', () => {
@@ -32,13 +32,13 @@ describe('OTEL Action', () => {
 
   describe('generateTraceparent', () => {
     it('should generate a valid W3C traceparent', () => {
-      const traceparent = generateTraceparent();
+      const traceparent = generateTraceParent();
       // Format: 00-<trace-id>-<span-id>-01
       assert.match(traceparent, /^00-[0-9a-f]{32}-[0-9a-f]{16}-01$/);
     });
 
     it('should contain a valid trace ID', () => {
-      const traceparent = generateTraceparent();
+      const traceparent = generateTraceParent();
       const traceId = traceparent.split('-')[1];
       const timestampHex = traceId.substring(0, 8);
       const timestamp = parseInt(timestampHex, 16);

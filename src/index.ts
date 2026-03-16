@@ -20,7 +20,7 @@ export function generateTraceId(): string {
  * trace-id: 16 random bytes (32 hex chars)
  * span-id: 8 random bytes (16 hex chars)
  */
-export function generateTraceparent(): string {
+export function generateTraceParent(): string {
   const spanId = crypto.randomBytes(8).toString('hex');
   return `00-${generateTraceId()}-${spanId}-01`;
 }
@@ -40,10 +40,18 @@ function maskKey(val: string): string {
   return createHash('sha256').update(val).digest('hex').slice(0, 12);
 }
 
-async function submitSpan(traceparent: string, startTime: number): Promise<void> {
-  const parts = traceparent.split('-');
+function getServiceName() {
+  // linz/action-otel.push
+  if (process.env.GITHUB_ACTION) {
+    return `${process.env['GITHUB_REPOSITORY']}.${process.env['GITHUB_WORKFLOW']}`
+  }
+  return 'action-otel'
+}
+
+async function submitSpan(traceParent: string, startTime: number): Promise<void> {
+  const parts = traceParent.split('-');
   if (parts.length !== 4) {
-    process.stderr.write('Invalid traceparent format\n');
+    process.stderr.write('Invalid TRACEPARENT format\n');
     return;
   }
 
@@ -61,7 +69,7 @@ async function submitSpan(traceparent: string, startTime: number): Promise<void>
 
   const provider = new BasicTracerProvider({
     resource: new Resource({
-      [ATTR_SERVICE_NAME]: process.env.GITHUB_ACTION ?? 'github-action',
+      [ATTR_SERVICE_NAME]: getServiceName(),
       ...readGithubEnv(),
     }),
   });
@@ -72,7 +80,7 @@ async function submitSpan(traceparent: string, startTime: number): Promise<void>
   const spanContext: SpanContext = { traceId, spanId, traceFlags: TraceFlags.SAMPLED };
 
   const span = tracer.startSpan(
-    process.env.GITHUB_ACTION ?? 'action',
+    process.env.GITHUB_WORKFLOW ? `action.${process.env['GITHUB_WORKFLOW']}` : 'action',
     {
       startTime,
       kind: SpanKind.SERVER,
@@ -89,7 +97,7 @@ async function submitSpan(traceparent: string, startTime: number): Promise<void>
 }
 
 export function runStart() {
-  const traceparent = generateTraceparent();
+  const traceparent = generateTraceParent();
   const startTime = Date.now().toString();
 
   const githubEnv = process.env.GITHUB_ENV;

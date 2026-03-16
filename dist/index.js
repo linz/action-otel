@@ -31022,7 +31022,7 @@ var require_src13 = __commonJS({
 var src_exports = {};
 __export(src_exports, {
   generateTraceId: () => generateTraceId,
-  generateTraceparent: () => generateTraceparent,
+  generateTraceParent: () => generateTraceParent,
   main: () => main,
   runEnd: () => runEnd,
   runStart: () => runStart
@@ -31044,7 +31044,7 @@ function generateTraceId() {
   const rand = import_node_crypto.default.randomBytes(12).toString("hex");
   return epoch + rand;
 }
-function generateTraceparent() {
+function generateTraceParent() {
   const spanId = import_node_crypto.default.randomBytes(8).toString("hex");
   return `00-${generateTraceId()}-${spanId}-01`;
 }
@@ -31061,10 +31061,16 @@ function readGithubEnv() {
 function maskKey(val) {
   return (0, import_node_crypto.createHash)("sha256").update(val).digest("hex").slice(0, 12);
 }
-async function submitSpan(traceparent, startTime) {
-  const parts = traceparent.split("-");
+function getServiceName() {
+  if (process.env.GITHUB_ACTION) {
+    return `${process.env["GITHUB_REPOSITORY"]}.${process.env["GITHUB_WORKFLOW"]}`;
+  }
+  return "action-otel";
+}
+async function submitSpan(traceParent, startTime) {
+  const parts = traceParent.split("-");
   if (parts.length !== 4) {
-    process.stderr.write("Invalid traceparent format\n");
+    process.stderr.write("Invalid TRACEPARENT format\n");
     return;
   }
   const traceId = parts[1];
@@ -31080,7 +31086,7 @@ async function submitSpan(traceparent, startTime) {
 `);
   const provider = new import_sdk_trace_base.BasicTracerProvider({
     resource: new import_resources.Resource({
-      [ATTR_SERVICE_NAME3]: process.env.GITHUB_ACTION ?? "github-action",
+      [ATTR_SERVICE_NAME3]: getServiceName(),
       ...readGithubEnv()
     })
   });
@@ -31088,7 +31094,7 @@ async function submitSpan(traceparent, startTime) {
   const tracer = provider.getTracer("action-otel");
   const spanContext = { traceId, spanId, traceFlags: TraceFlags.SAMPLED };
   const span = tracer.startSpan(
-    process.env.GITHUB_ACTION ?? "action",
+    process.env.GITHUB_WORKFLOW ? `action.${process.env["GITHUB_WORKFLOW"]}` : "action",
     {
       startTime,
       kind: SpanKind.SERVER
@@ -31103,7 +31109,7 @@ async function submitSpan(traceparent, startTime) {
   console.log("Provider shut down.");
 }
 function runStart() {
-  const traceparent = generateTraceparent();
+  const traceparent = generateTraceParent();
   const startTime = Date.now().toString();
   const githubEnv = process.env.GITHUB_ENV;
   if (githubEnv) {
@@ -31169,7 +31175,7 @@ main().catch((err) => {
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   generateTraceId,
-  generateTraceparent,
+  generateTraceParent,
   main,
   runEnd,
   runStart
