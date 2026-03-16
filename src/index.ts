@@ -51,9 +51,9 @@ function maskKey(val: string): string {
 function getServiceName() {
   // linz/action-otel.push
   if (process.env.GITHUB_ACTION) {
-    return `${process.env['GITHUB_REPOSITORY']}.${process.env['GITHUB_WORKFLOW']}`
+    return `${process.env['GITHUB_REPOSITORY']}.${process.env['GITHUB_WORKFLOW']}`;
   }
-  return 'action-otel'
+  return 'action-otel';
 }
 
 async function submitSpan(traceParent: string, startTime: number): Promise<void> {
