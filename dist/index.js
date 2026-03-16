@@ -2200,8 +2200,8 @@ var require_environment = __commonJS({
     }
     function parseEnvironment(values) {
       const environment = {};
-      for (const env in exports2.DEFAULT_ENVIRONMENT) {
-        const key = env;
+      for (const env2 in exports2.DEFAULT_ENVIRONMENT) {
+        const key = env2;
         switch (key) {
           case "OTEL_LOG_LEVEL":
             setLogLevelFromEnv(key, environment, values);
@@ -18852,9 +18852,9 @@ var require_EnvDetectorSync = __commonJS({
        */
       detect(_config) {
         const attributes = {};
-        const env = (0, core_1.getEnv)();
-        const rawAttributes = env.OTEL_RESOURCE_ATTRIBUTES;
-        const serviceName = env.OTEL_SERVICE_NAME;
+        const env2 = (0, core_1.getEnv)();
+        const rawAttributes = env2.OTEL_RESOURCE_ATTRIBUTES;
+        const serviceName = env2.OTEL_SERVICE_NAME;
         if (rawAttributes) {
           try {
             const parsedAttributes = this._parseResourceAttributes(rawAttributes);
@@ -23520,8 +23520,8 @@ var require_environment3 = __commonJS({
     }
     function parseEnvironment(values) {
       const environment = {};
-      for (const env in exports2.DEFAULT_ENVIRONMENT) {
-        const key = env;
+      for (const env2 in exports2.DEFAULT_ENVIRONMENT) {
+        const key = env2;
         switch (key) {
           case "OTEL_LOG_LEVEL":
             setLogLevelFromEnv(key, environment, values);
@@ -25496,9 +25496,9 @@ var require_EnvDetectorSync2 = __commonJS({
        */
       detect(_config) {
         const attributes = {};
-        const env = (0, core_1.getEnv)();
-        const rawAttributes = env.OTEL_RESOURCE_ATTRIBUTES;
-        const serviceName = env.OTEL_SERVICE_NAME;
+        const env2 = (0, core_1.getEnv)();
+        const rawAttributes = env2.OTEL_RESOURCE_ATTRIBUTES;
+        const serviceName = env2.OTEL_SERVICE_NAME;
         if (rawAttributes) {
           try {
             const parsedAttributes = this._parseResourceAttributes(rawAttributes);
@@ -26315,8 +26315,8 @@ var require_environment5 = __commonJS({
     }
     function parseEnvironment(values) {
       const environment = {};
-      for (const env in exports2.DEFAULT_ENVIRONMENT) {
-        const key = env;
+      for (const env2 in exports2.DEFAULT_ENVIRONMENT) {
+        const key = env2;
         switch (key) {
           case "OTEL_LOG_LEVEL":
             setLogLevelFromEnv(key, environment, values);
@@ -30059,21 +30059,21 @@ var require_config2 = __commonJS({
     var FALLBACK_OTEL_TRACES_SAMPLER = core_1.TracesSamplerValues.AlwaysOn;
     var DEFAULT_RATIO = 1;
     function loadDefaultConfig() {
-      const env = (0, core_1.getEnv)();
+      const env2 = (0, core_1.getEnv)();
       return {
-        sampler: buildSamplerFromEnv(env),
+        sampler: buildSamplerFromEnv(env2),
         forceFlushTimeoutMillis: 3e4,
         generalLimits: {
-          attributeValueLengthLimit: env.OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT,
-          attributeCountLimit: env.OTEL_ATTRIBUTE_COUNT_LIMIT
+          attributeValueLengthLimit: env2.OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT,
+          attributeCountLimit: env2.OTEL_ATTRIBUTE_COUNT_LIMIT
         },
         spanLimits: {
-          attributeValueLengthLimit: env.OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT,
-          attributeCountLimit: env.OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT,
-          linkCountLimit: env.OTEL_SPAN_LINK_COUNT_LIMIT,
-          eventCountLimit: env.OTEL_SPAN_EVENT_COUNT_LIMIT,
-          attributePerEventCountLimit: env.OTEL_SPAN_ATTRIBUTE_PER_EVENT_COUNT_LIMIT,
-          attributePerLinkCountLimit: env.OTEL_SPAN_ATTRIBUTE_PER_LINK_COUNT_LIMIT
+          attributeValueLengthLimit: env2.OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT,
+          attributeCountLimit: env2.OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT,
+          linkCountLimit: env2.OTEL_SPAN_LINK_COUNT_LIMIT,
+          eventCountLimit: env2.OTEL_SPAN_EVENT_COUNT_LIMIT,
+          attributePerEventCountLimit: env2.OTEL_SPAN_ATTRIBUTE_PER_EVENT_COUNT_LIMIT,
+          attributePerLinkCountLimit: env2.OTEL_SPAN_ATTRIBUTE_PER_LINK_COUNT_LIMIT
         },
         mergeResourceWithDefaults: true
       };
@@ -30169,11 +30169,11 @@ var require_BatchSpanProcessorBase = __commonJS({
         this._isExporting = false;
         this._finishedSpans = [];
         this._droppedSpansCount = 0;
-        const env = (0, core_1.getEnv)();
-        this._maxExportBatchSize = typeof (config === null || config === void 0 ? void 0 : config.maxExportBatchSize) === "number" ? config.maxExportBatchSize : env.OTEL_BSP_MAX_EXPORT_BATCH_SIZE;
-        this._maxQueueSize = typeof (config === null || config === void 0 ? void 0 : config.maxQueueSize) === "number" ? config.maxQueueSize : env.OTEL_BSP_MAX_QUEUE_SIZE;
-        this._scheduledDelayMillis = typeof (config === null || config === void 0 ? void 0 : config.scheduledDelayMillis) === "number" ? config.scheduledDelayMillis : env.OTEL_BSP_SCHEDULE_DELAY;
-        this._exportTimeoutMillis = typeof (config === null || config === void 0 ? void 0 : config.exportTimeoutMillis) === "number" ? config.exportTimeoutMillis : env.OTEL_BSP_EXPORT_TIMEOUT;
+        const env2 = (0, core_1.getEnv)();
+        this._maxExportBatchSize = typeof (config === null || config === void 0 ? void 0 : config.maxExportBatchSize) === "number" ? config.maxExportBatchSize : env2.OTEL_BSP_MAX_EXPORT_BATCH_SIZE;
+        this._maxQueueSize = typeof (config === null || config === void 0 ? void 0 : config.maxQueueSize) === "number" ? config.maxQueueSize : env2.OTEL_BSP_MAX_QUEUE_SIZE;
+        this._scheduledDelayMillis = typeof (config === null || config === void 0 ? void 0 : config.scheduledDelayMillis) === "number" ? config.scheduledDelayMillis : env2.OTEL_BSP_SCHEDULE_DELAY;
+        this._exportTimeoutMillis = typeof (config === null || config === void 0 ? void 0 : config.exportTimeoutMillis) === "number" ? config.exportTimeoutMillis : env2.OTEL_BSP_EXPORT_TIMEOUT;
         this._shutdownOnce = new core_1.BindOnceFuture(this._shutdown, this);
         if (this._maxExportBatchSize > this._maxQueueSize) {
           api_1.diag.warn("BatchSpanProcessor: maxExportBatchSize must be smaller or equal to maxQueueSize, setting maxExportBatchSize to match maxQueueSize");
@@ -31048,15 +31048,23 @@ function generateTraceParent() {
   const spanId = import_node_crypto.default.randomBytes(8).toString("hex");
   return `00-${generateTraceId()}-${spanId}-01`;
 }
+function env(obj, key, envKey) {
+  const val = (process.env[envKey] ?? "").trim();
+  if (val === "")
+    return;
+  obj[key] = val;
+}
 function readGithubEnv() {
-  if (process.env["GITHUB_RUN_ID"] == null)
-    return null;
-  return {
-    "github.run_id": process.env["GITHUB_RUN_ID"],
-    "github.run_attempt": process.env["GITHUB_RUN_ATTEMPT"],
-    "github.repository": process.env["GITHUB_REPOSITORY"],
-    "github.workflow": process.env["GITHUB_WORKFLOW"]
-  };
+  const output = {};
+  env(output, "github.actor", "GITHUB_ACTOR");
+  env(output, "github.event", "GITHUB_EVENT_NAME");
+  env(output, "github.job_id", "GITHUB_JOB");
+  env(output, "github.ref", "GITHUB_REF");
+  env(output, "github.sha", "GITHUB_SHA");
+  env(output, "github.run_id", "GITHUB_RUN_ID");
+  env(output, "github.repository", "GITHUB_REPOSITORY");
+  env(output, "github.workflow", "GITHUB_WORKFLOW");
+  return output;
 }
 function maskKey(val) {
   return (0, import_node_crypto.createHash)("sha256").update(val).digest("hex").slice(0, 12);

@@ -25,15 +25,23 @@ export function generateTraceParent(): string {
   return `00-${generateTraceId()}-${spanId}-01`;
 }
 
-function readGithubEnv(): Record<string, string | undefined> | null {
-  if (process.env['GITHUB_RUN_ID'] == null) return null;
+function env(obj: Record<string, string>, key: string, envKey: string): void {
+  const val = (process.env[envKey] ?? '').trim();
+  if (val === '') return;
+  obj[key] = val;
+}
 
-  return {
-    'github.run_id': process.env['GITHUB_RUN_ID'],
-    'github.run_attempt': process.env['GITHUB_RUN_ATTEMPT'],
-    'github.repository': process.env['GITHUB_REPOSITORY'],
-    'github.workflow': process.env['GITHUB_WORKFLOW'],
-  };
+function readGithubEnv(): Record<string, string | undefined> | null {
+  const output = {};
+  env(output, 'github.actor', 'GITHUB_ACTOR');
+  env(output, 'github.event', 'GITHUB_EVENT_NAME');
+  env(output, 'github.job_id', 'GITHUB_JOB');
+  env(output, 'github.ref', 'GITHUB_REF');
+  env(output, 'github.sha', 'GITHUB_SHA');
+  env(output, 'github.run_id', 'GITHUB_RUN_ID');
+  env(output, 'github.repository', 'GITHUB_REPOSITORY');
+  env(output, 'github.workflow', 'GITHUB_WORKFLOW');
+  return output;
 }
 
 function maskKey(val: string): string {
