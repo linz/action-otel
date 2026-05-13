@@ -18,7 +18,7 @@
     "@opentelemetry/sdk-trace-base": "^1.22.0",
     "@opentelemetry/semantic-conventions": "^1.22.0",
     "@types/node": "^20.11.0",
-    "esbuild": "^0.20.0",
+    "esbuild": "^0.25.0",
     "oxfmt": "^0.40.0",
     "oxlint": "^1.55.0",
     "oxlint-tsgolint": "^0.16.0",
